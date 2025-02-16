@@ -34,4 +34,4 @@ VOLUME ["/vpn"]
 
 # Nutze tini als Init-Prozess und starte das Startskript
 ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/start.sh"]
-RUN sed -i 's/exec sg vpn -c/exec/g' /usr/bin/openvpn.sh
+
