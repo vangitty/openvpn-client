@@ -1,6 +1,8 @@
-#!/bin/sh
-# Starte OpenVPN mit der vorhandenen Konfiguration im Hintergrund
-/usr/bin/openvpn.sh &
+#!/bin/bash
+# Ensure VPN config directory exists and has proper permissions
+mkdir -p /vpn
+chown -R nobody:vpn /vpn
+chmod 750 /vpn
 
-# Starte Tinyproxy im Vordergrund, damit der Container aktiv bleibt
-exec tinyproxy -d
+# Start OpenVPN with proper permissions
+exec openvpn --config /vpn/config.ovpn --script-security 2
