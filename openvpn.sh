@@ -369,10 +369,12 @@ elif [[ $# -ge 1 ]]; then
 elif ps -ef | egrep -v 'grep|openvpn.sh' | grep -q openvpn; then
     echo "Service already running, please restart container to apply changes"
 else
- mkdir -p /dev/net
-[[ -c /dev/net/tun ]] || mknod -m 0666 /dev/net/tun c 10 200
-[[ -e $conf ]] || { echo "ERROR: VPN not configured!"; sleep 120; }
-[[ -e $cert ]] || grep -Eq '^ *(<ca>|ca +)' $conf || { echo "ERROR: VPN CA cert missing!"; sleep 120; }
-set -x
-exec openvpn --cd "$dir" --config "$conf" $ext_args ${OTHER_ARGS:-} ${MSS:+--fragment $MSS --mssfix}
+    mkdir -p /dev/net
+    [[ -c /dev/net/tun ]] || mknod -m 0666 /dev/net/tun c 10 200
+    [[ -e $conf ]] || { echo "ERROR: VPN not configured!"; sleep 120; }
+    [[ -e $cert ]] || grep -Eq '^ *(<ca>|ca +)' $conf ||
+        { echo "ERROR: VPN CA cert missing!"; sleep 120; }
+    set -x
+    exec sg vpn -c "openvpn --cd $dir --config $conf $ext_args \
+               ${OTHER_ARGS:-} ${MSS:+--fragment $MSS --mssfix}"
 fi
