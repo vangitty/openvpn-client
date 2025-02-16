@@ -25,6 +25,10 @@ COPY tinyproxy.conf /etc/tinyproxy/tinyproxy.conf
 COPY start.sh /usr/bin/
 RUN chmod +x /usr/bin/start.sh
 
+# HEALTHCHECK bleibt unverändert (kannst du bei Bedarf anpassen)
+HEALTHCHECK --interval=60s --timeout=15s --start-period=10s \
+             CMD curl -LSs 'https://api.ipify.org'
+
 # /vpn wird als persistent Volume gemountet (Coolify mountet hier deine config.ovpn und ggf. weitere Dateien)
 VOLUME ["/vpn"]
 
