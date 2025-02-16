@@ -1,8 +1,11 @@
 #!/bin/bash
-# Create auth file
-echo "$OVPN_USERNAME" > /vpn/auth.txt
-echo "$OVPN_PASSWORD" >> /vpn/auth.txt
-chmod 600 /vpn/auth.txt
 
-# Start OpenVPN with auth file
-exec openvpn --config /vpn/config.ovpn --auth-user-pass /vpn/auth.txt --auth-nocache
+# Verzeichnisse für Tinyproxy erstellen
+mkdir -p /var/run/tinyproxy /var/log/tinyproxy
+chown -R nobody:nogroup /var/run/tinyproxy /var/log/tinyproxy
+
+# Tinyproxy im Hintergrund starten
+tinyproxy -c /etc/tinyproxy/tinyproxy.conf
+
+# OpenVPN starten (im Vordergrund)
+exec openvpn --config /vpn/config.ovpn
