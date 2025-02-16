@@ -15,6 +15,10 @@ RUN apk --no-cache --no-progress upgrade && \
     # Erstelle symbolischen Link, falls openvpn.sh /bin/sg erwartet
     ln -s /usr/bin/sg /bin/sg
 
+RUN mkdir -p /dev/net && \
+    mknod /dev/net/tun c 10 200 && \
+    chmod 600 /dev/net/tun
+    
 # Kopiere das originale openvpn-Skript (wird später im Startskript genutzt)
 COPY openvpn.sh /usr/bin/
 
