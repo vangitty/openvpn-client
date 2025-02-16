@@ -1,33 +1,35 @@
 FROM alpine
 MAINTAINER David Personette <dperson@gmail.com>
 
-# Update und Installation von OpenVPN, Tinyproxy und benötigten Paketen
+# Update und Installation der benötigten Pakete:
+# - openvpn, tinyproxy, util-linux (liefert u.a. das sg-Kommando),
+# - bash, curl, iptables, ip6tables, shadow, tini, tzdata
 RUN apk --no-cache --no-progress upgrade && \
-    apk --no-cache --no-progress add bash curl ip6tables iptables openvpn tinyproxy \
+    apk --no-cache --no-progress add bash curl ip6tables iptables openvpn tinyproxy util-linux \
                 shadow tini tzdata && \
     addgroup -S vpn && \
+    # Erstelle das Verzeichnis für die Tinyproxy PID-Datei und Logs
+    mkdir -p /var/run/tinyproxy /var/log/tinyproxy && \
+    chown nobody:nogroup /var/run/tinyproxy /var/log/tinyproxy && \
     rm -rf /tmp/*
 
-# Erstelle das Verzeichnis für Tinyproxy PID-Datei
-RUN mkdir -p /var/run/tinyproxy && \
-    chown nobody:nogroup /var/run/tinyproxy
-
-# Kopiere das originale OpenVPN-Skript
+# Kopiere das originale openvpn-Skript (wird später im Startskript genutzt)
 COPY openvpn.sh /usr/bin/
 
-# Kopiere die angepasste Tinyproxy-Konfiguration
+# Kopiere deine angepasste Tinyproxy-Konfiguration ins Image
 COPY tinyproxy.conf /etc/tinyproxy/tinyproxy.conf
 
-# Persistent Storage: /vpn wird von Coolify als Volume gemountet
-VOLUME ["/vpn"]
-
-# Kopiere das Startskript, das beide Dienste startet
+# Kopiere das neue Startskript, das beide Dienste startet
 COPY start.sh /usr/bin/
 RUN chmod +x /usr/bin/start.sh
 
-HEALTHCHECK --interval=60s --timeout=15s --start-period=20s \
+# HEALTHCHECK bleibt unverändert
+HEALTHCHECK --interval=60s --timeout=15s --start-period=10s \
              CMD curl -LSs 'https://api.ipify.org'
 
-# Verwende tini als Init-Prozess und starte das Startskript
+# /vpn wird als persistent Volume gemountet (Coolify mountet hier deine config.ovpn etc.)
+VOLUME ["/vpn"]
+
+# Nutze tini als Init-Prozess und starte das Startskript
 ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/start.sh"]
 
